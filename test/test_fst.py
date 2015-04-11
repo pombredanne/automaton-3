@@ -167,7 +167,7 @@ class MutableFSTTestCase( TestCase ):
     def test_output_stuff( self ):
         f = MutableFST()
         s0 = f.get_initial_state()
-        self.assertEqual( f.get_outputs( s0 ) , None )
+        self.assertEqual( f.get_outputs( s0 ) , set() )
         self.assertEqual( f.to_dict() , { 'initial':s0 , 'finals':[] , 'transitions':{ s0:{} } } )
         f.add_output( s0 , 1 )
         self.assertEqual( f.get_outputs( s0 ) , { 1 } )

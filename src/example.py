@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @author <marty.patrick@gmail.com>
 
-from .dma import build_dma_complete
-from .dma import build_dma_default
+from automaton.dma import build_dma_complete
+from automaton.dma import build_dma_default
 
 words = [ 'aa' , 'abaaa' , 'abab' ]
 

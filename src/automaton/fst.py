@@ -59,7 +59,7 @@ class FST:
     def get_outputs( self , state ):
         if not self.transitionMatrix_.has_state( state ):
             raise FSTException( 'Unknown state : %s' % str( state ) )
-        return self.output_.get( state , None )
+        return self.output_.get( state , set() )
 
 
     def get_stats( self ):
@@ -84,7 +84,7 @@ class FST:
             if currentState is None:
                 break
             if self.is_final_state( currentState ):
-                for x in self.get_outputs( currentState ):
+                for x in sorted( self.get_outputs( currentState ) ):
                     outputs.append( ( x , letterNo - len( x ) + 1 , letterNo + 1 ) )
         return outputs
 
@@ -97,7 +97,7 @@ class FST:
         outputs = {}
         for state in self.get_states():
             stateOutputs = self.get_outputs( state )
-            if stateOutputs is not None:
+            if len( stateOutputs ) != 0:
                 outputs[state] = sorted( stateOutputs )
         if len( outputs ) != 0:
             d[ 'outputs' ] = outputs
@@ -115,7 +115,7 @@ nodesep = "0.25";""" ]
         for state in states:
             dot.append( '%d [label = "%d", shape = %s, style = bold, fontsize = 14]' % ( state , state , 'doublecircle' if self.is_final_state( state ) else 'circle' ) )
             successors = self.transitionMatrix_.get_transitions( state )
-            letters = iter(list(successors.keys()))
+            letters = successors.keys()
             for letter in sorted( letters ):
                 target = successors[ letter ]
                 dot.append( '\t%d -> %d [label = "%s", fontsize = 14];' % ( state , target , letter ) )
@@ -124,7 +124,7 @@ nodesep = "0.25";""" ]
 
 
     def dump_( self , outputFileName , output ):
-        outputFile = open( outputFileName , 'w' )
+        outputFile = open( outputFileName , 'wb' )
         outputFile.write( output.encode( 'utf-8' ) )
         outputFile.close()
         return self

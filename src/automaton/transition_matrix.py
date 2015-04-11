@@ -37,7 +37,7 @@ class MutableTransitionMatrix:
 
 
     def get_num_transitions( self ):
-        return sum( len( transitions ) for transitions in list(self.tm_.values()) )
+        return sum( len( transitions ) for transitions in self.tm_.values() )
 
 
     def has_state( self , state ):
@@ -45,7 +45,7 @@ class MutableTransitionMatrix:
 
 
     def get_num_states( self ):
-        return len( list(self.tm_.keys()) )
+        return len( self.tm_.keys() )
 
 
     def get_states( self ):
@@ -53,7 +53,7 @@ class MutableTransitionMatrix:
 
 
     def get_letters( self ):
-        return sorted( set( letter for successors in list(self.tm_.values()) for letter in list(successors.keys()) ) )
+        return sorted( set( letter for successors in self.tm_.values() for letter in successors.keys() ) )
 
 
     def to_dict( self ):
