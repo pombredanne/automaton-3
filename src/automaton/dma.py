@@ -2,8 +2,8 @@
 # @author <marty.patrick@gmail.com>
 
 
-from fst import MutableFSTD
-from trie import build_trie
+from .fst import MutableFSTD
+from .trie import build_trie
 
 
 def get_letters( words ):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @author <marty.patrick@gmail.com>
 
-from fst import MutableFST
+from .fst import MutableFST
 
 
 def build_trie( words , fst_factory=MutableFST ):

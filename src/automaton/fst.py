@@ -4,8 +4,8 @@
 from collections import defaultdict
 
 
-from transition_matrix import MutableTransitionMatrix
-from transition_matrix import MutableTransitionMatrixWithDefaultSuccessor
+from .transition_matrix import MutableTransitionMatrix
+from .transition_matrix import MutableTransitionMatrixWithDefaultSuccessor
 
 
 
@@ -105,7 +105,7 @@ class FST:
 
 
     def to_dot( self ):
-        dot = [ u"""digraph FST {
+        dot = [ """digraph FST {
 rankdir = LR;
 label = "";
 center = 1;
@@ -113,14 +113,14 @@ ranksep = "0.4";
 nodesep = "0.25";""" ]
         states = self.get_states()
         for state in states:
-            dot.append( u'%d [label = "%d", shape = %s, style = bold, fontsize = 14]' % ( state , state , 'doublecircle' if self.is_final_state( state ) else 'circle' ) )
+            dot.append( '%d [label = "%d", shape = %s, style = bold, fontsize = 14]' % ( state , state , 'doublecircle' if self.is_final_state( state ) else 'circle' ) )
             successors = self.transitionMatrix_.get_transitions( state )
-            letters = successors.iterkeys()
+            letters = iter(list(successors.keys()))
             for letter in sorted( letters ):
                 target = successors[ letter ]
-                dot.append( u'\t%d -> %d [label = "%s", fontsize = 14];' % ( state , target , letter ) )
-        dot.append( u'}' )
-        return u'\n'.join( dot )
+                dot.append( '\t%d -> %d [label = "%s", fontsize = 14];' % ( state , target , letter ) )
+        dot.append( '}' )
+        return '\n'.join( dot )
 
 
     def dump_( self , outputFileName , output ):
