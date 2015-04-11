@@ -3,6 +3,7 @@
 
 from unittest import TestCase
 
+from automaton.fst import MutableFSTException
 from automaton.fst import MutableFST
 from automaton.fst import MutableFSTD
 
@@ -29,6 +30,12 @@ class MutableFSTTestCase( TestCase ):
         s2 = f.add_state()
         self.assertEqual( f.get_states() , [ s0 , s1 , s2 ] )
         self.assertEqual( f.to_dict() , { 'initial':s0 , 'finals':[] , 'transitions':{ s0:{} , s2:{} , s1:{} } } )
+
+
+    def test_add_transition_with_empty_word( self ):
+        f = MutableFST()
+        s0 = f.get_initial_state()
+        self.assertRaises( MutableFSTException , f.add_transition , s0 , '' , s0 )
 
 
     def test_add_transition( self ):

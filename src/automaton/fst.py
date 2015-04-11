@@ -10,6 +10,12 @@ from transition_matrix import MutableTransitionMatrixWithDefaultSuccessor
 
 
 
+class FSTException( Exception ):
+    pass
+
+
+
+
 class FST:
     def __init__( self , initialState, transitionMatrix , finalStates , outputs ):
         self.initialState_ = initialState
@@ -36,7 +42,7 @@ class FST:
 
     def is_final_state( self , state ):
         if not self.transitionMatrix_.has_state( state ):
-            raise RuntimeError( 'Unknown state : %s' % str( state ) )
+            raise FSTException( 'Unknown state : %s' % str( state ) )
         return state in self.finals_
 
 
@@ -52,7 +58,7 @@ class FST:
 
     def get_outputs( self , state ):
         if not self.transitionMatrix_.has_state( state ):
-            raise RuntimeError( 'Unknown state : %s' % str( state ) )
+            raise FSTException( 'Unknown state : %s' % str( state ) )
         return self.output_.get( state , None )
 
 
@@ -130,6 +136,12 @@ nodesep = "0.25";""" ]
 
 
 
+class MutableFSTException( Exception ):
+    pass
+
+
+
+
 class AbstractMutableFST( FST ):
     def __init__( self , initialState , transitionMatrix ):
         FST.__init__( self , initialState , transitionMatrix , set() , defaultdict( set ) )
@@ -137,14 +149,14 @@ class AbstractMutableFST( FST ):
 
     def set_final_state( self , state ):
         if not self.transitionMatrix_.has_state( state ):
-            raise RuntimeError( 'Unknown state : %s' % str( state ) )
+            raise MutableFSTException( 'Unknown state : %s' % str( state ) )
         self.finals_.add( state )
         return self
 
 
     def add_output( self , state , output ):
         if not self.transitionMatrix_.has_state( state ):
-            raise RuntimeError( 'Unknown state : %s' % str( state ) )
+            raise MutableFSTException( 'Unknown state : %s' % str( state ) )
         self.output_[ state ].add( output )
         return self
 
@@ -160,10 +172,12 @@ class AbstractMutableFST( FST ):
 
 
     def add_transition( self , source , letter , target ):
+        if len( letter ) == 0:
+            raise MutableFSTException( 'Epsilon transition not allowed : source state : %s , target state : %s ' % ( source , target ) )
         if not self.transitionMatrix_.has_state( source ):
-            raise RuntimeError( 'Unknown source state : %s' % str( source ) )
+            raise MutableFSTException( 'Unknown source state : %s' % str( source ) )
         if not self.transitionMatrix_.has_state( target ):
-            raise RuntimeError( 'Unknown target state : %s' % str( target ) )
+            raise MutableFSTException( 'Unknown target state : %s' % str( target ) )
         self.transitionMatrix_.add_transition( source , letter , target )
         return self
 
