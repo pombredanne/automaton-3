@@ -2,3 +2,5 @@
 .*.swp
 .*.swo
 *.py.bak
+/tmp/
+/.cache/

@@ -6,8 +6,6 @@ from unittest import TestCase
 from automaton.dma import build_dma_default
 
 
-
-
 class BuildDMATestCase( TestCase ):
     def test_a_ab( self ):
         words = [ 'a' , 'ab' ]
