@@ -14,53 +14,66 @@ class FSTException(Exception):
 
 
 class FST(object):
-
+    """
+    Possibly a https://en.wikipedia.org/wiki/Finite_state_transducer ?
+    https://www.google.com/search?q=Finite+state+transducer+Mealy+automata
+    """
     def __init__(self, initial_state, transition_matrix, final_states, outputs):
-        self.initial_state_ = initial_state
-        self.transition_matrix_ = transition_matrix
-        self.finals_ = final_states
-        self.output_ = outputs
+        self.initial_state = initial_state
+        self.transition_matrix = transition_matrix
+        self.finals = final_states
+        self.output = outputs
 
     def get_num_states(self):
-        return self.transition_matrix_.get_num_states()
+        return self.transition_matrix.get_num_states()
 
     def get_states(self):
-        return self.transition_matrix_.get_states()
+        return self.transition_matrix.get_states()
 
     def get_initial_state(self):
-        return self.initial_state_
+        return self.initial_state
 
     def get_final_states(self):
-        return sorted(self.finals_)
+        return sorted(self.finals)
 
     def is_final_state(self, state):
-        if not self.transition_matrix_.has_state(state):
-            raise FSTException('Unknown state:  %(state)s' % locals())
-        return state in self.finals_
+        if not self.transition_matrix.has_state(state):
+            raise FSTException('Unknown state: %(state)s' % locals())
+        return state in self.finals
 
-    def get_letters(self):
-        return self.transition_matrix_.get_letters()
+    def alphabet(self):
+        return self.transition_matrix.alphabet()
 
     def get_target(self, source, letter):
-        return self.transition_matrix_.get_target(source, letter)
+        return self.transition_matrix.get_target(source, letter)
 
     # set get_target method
     get_target_function = get_target
 
     def get_outputs(self, state):
-        if not self.transition_matrix_.has_state(state):
-            raise FSTException('Unknown state:  %(state)s' % locals())
-        return self.output_.get(state, set())
+        """
+        Return a set of outputs for a state.
+        """
+
+        if not self.transition_matrix.has_state(state):
+            raise FSTException('Unknown state: %(state)s' % locals())
+        return self.output.get(state, set())
 
     def get_stats(self):
-        num_transitions = self.transition_matrix_.get_num_transitions()
+        """
+        Return a dictionary of statistics on the automaton.
+        """
+        num_transitions = self.transition_matrix.get_num_transitions()
         return {
-            'num_states':  self.get_num_states(),
-            'num_final_states':  len(self.get_final_states()),
-            'num_transitions':  num_transitions
-        }
+            'num_states': self.get_num_states(),
+            'num_final_states': len(self.get_final_states()),
+            'num_transitions': num_transitions
+       }
 
     def accept(self, word):
+        """
+        Return True if word if found in automaton.
+        """
         current_state = self.get_initial_state()
         for letter in word:
             current_state = self.get_target_function(current_state, letter)
@@ -68,8 +81,10 @@ class FST(object):
                 return False
         return self.is_final_state(current_state)
 
-    def det_search(self, word):
-        outputs = []
+    def _det_search(self, word):
+        """
+        Search for word and yield tuples of (letter, start pos, end pos)
+        """
         current_state = self.get_initial_state()
         for letter_pos, letter in enumerate(word):
             current_state = self.get_target_function(current_state, letter)
@@ -77,25 +92,37 @@ class FST(object):
                 break
             if self.is_final_state(current_state):
                 for x in sorted(self.get_outputs(current_state)):
-                    outputs.append((x, letter_pos - len(x) + 1, letter_pos + 1))
-        return outputs
+                    yield x, letter_pos - len(x) + 1, letter_pos + 1
+
+    def det_search(self, word):
+        """
+        det == deterministic?
+        Search for word and return a list of  tuples of (letter, start pos, end pos)
+        """
+        return list(self._det_search(word))
 
     def to_dict(self):
+        """
+        Return a dictionary representing self.
+        """
         d = dict(
-            transitions=self.transition_matrix_.to_dict(),
-            initial=self.initial_state_,
-            finals=sorted(self.finals_)
+            transitions=self.transition_matrix.to_dict(),
+            initial=self.initial_state,
+            finals=sorted(self.finals)
         )
         outputs = {}
         for state in self.get_states():
             state_outputs = self.get_outputs(state)
-            if len(state_outputs) != 0:
+            if len(state_outputs):
                 outputs[state] = sorted(state_outputs)
-        if len(outputs) != 0:
+        if len(outputs):
             d['outputs'] = outputs
         return d
 
     def to_dot(self):
+        """
+        Return a string representing self in Graphviz dot format.
+        """
         dot = ["""digraph FST {
 rankdir = LR;
 label = "";
@@ -106,7 +133,7 @@ nodesep = "0.25";"""]
         for state in states:
             shape = self.is_final_state(state) and 'doublecircle' or 'circle'
             dot.append('%(state)d [label = "%(state)d",shape = %(shape)s,style = bold,fontsize = 14]' % locals())
-            successors = self.transition_matrix_.get_transitions(state)
+            successors = self.transition_matrix.get_transitions(state)
             letters = successors.keys()
             for letter in sorted(letters):
                 target = successors[letter]
@@ -114,14 +141,19 @@ nodesep = "0.25";"""]
         dot.append('}')
         return '\n'.join(dot)
 
-    def dump_(self, output_file_name, output):
-        output_file = open(output_file_name, 'wb')
-        output_file.write(output.encode('utf-8'))
-        output_file.close()
+    def dump(self, location, output):
+        """
+        Dump output to location.
+        """
+        with open(location, 'wb') as output_file:
+            output_file.write(output.encode('utf-8'))
         return self
 
-    def dump_dot(self, dot_file_name):
-        return self.dump_(dot_file_name, self.to_dot())
+    def dump_to_dot(self, location):
+        """
+        Dump self in a graphviz dot format to location.
+        """
+        return self.dump(location, self.to_dot())
 
 
 class MutableFSTException(Exception):
@@ -133,15 +165,15 @@ class AbstractMutableFST(FST):
         FST.__init__(self, initial_state, transition_matrix, set(), defaultdict(set))
 
     def set_final_state(self, state):
-        if not self.transition_matrix_.has_state(state):
-            raise MutableFSTException('Unknown state:  % s' % str(state))
-        self.finals_.add(state)
+        if not self.transition_matrix.has_state(state):
+            raise MutableFSTException('Unknown state: % s' % str(state))
+        self.finals.add(state)
         return self
 
     def add_output(self, state, output):
-        if not self.transition_matrix_.has_state(state):
-            raise MutableFSTException('Unknown state:  % s' % str(state))
-        self.output_[state].add(output)
+        if not self.transition_matrix.has_state(state):
+            raise MutableFSTException('Unknown state: % s' % str(state))
+        self.output[state].add(output)
         return self
 
     def add_outputs(self, state, outputs):
@@ -150,19 +182,19 @@ class AbstractMutableFST(FST):
         return self
 
     def add_state(self):
-        return self.transition_matrix_.add_state()
+        return self.transition_matrix.add_state()
 
     def add_transition(self, source, letter, target):
         if len(letter) == 0:
-            raise MutableFSTException('Epsilon transition not allowed:  source state:  %(source)s,target state:  %(target)s ' % locals())
+            raise MutableFSTException('Epsilon transition not allowed: source state: %(source)s,target state: %(target)s ' % locals())
 
-        if not self.transition_matrix_.has_state(source):
-            raise MutableFSTException('Unknown source state:  %(source)s' % locals())
+        if not self.transition_matrix.has_state(source):
+            raise MutableFSTException('Unknown source state: %(source)s' % locals())
 
-        if not self.transition_matrix_.has_state(target):
-            raise MutableFSTException('Unknown target state:  %(target)s' % locals())
+        if not self.transition_matrix.has_state(target):
+            raise MutableFSTException('Unknown target state: %(target)s' % locals())
 
-        self.transition_matrix_.add_transition(source, letter, target)
+        self.transition_matrix.add_transition(source, letter, target)
         return self
 
 
@@ -171,13 +203,13 @@ class MutableFST(AbstractMutableFST):
         AbstractMutableFST.__init__(self, 0, MutableTransitionMatrix(0))
 
 
-class MutableFSTD(AbstractMutableFST):
+class MutableFSTWithDefaultSucessor(AbstractMutableFST):
     # D for default successor
     def __init__(self):
         AbstractMutableFST.__init__(self, 0, MutableTransitionMatrixWithDefaultSuccessor(0))
 
     def get_target_by_default(self, source, letter):
-        return self.transition_matrix_.get_target_by_default(source, letter)
+        return self.transition_matrix.get_target_by_default(source, letter)
 
     # set get_target method
     get_target_function = get_target_by_default

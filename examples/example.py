@@ -4,7 +4,7 @@
 from automaton.dma import build_dma_complete
 from automaton.dma import build_dma_default
 
-words = ['aa', 'abaaa', 'abab' ]
+words = ['aa', 'abaaa', 'abab']
 
 dma = build_dma_complete(words)
 dma.dump_dot('dma.dot')

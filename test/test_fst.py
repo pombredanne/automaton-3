@@ -7,13 +7,13 @@ from unittest import TestCase
 
 from automaton.fst import MutableFSTException
 from automaton.fst import MutableFST
-from automaton.fst import MutableFSTD
+from automaton.fst import MutableFSTWithDefaultSucessor
 
 
 class MutableFSTTestCase(TestCase):
     def test_construction(self):
         f = MutableFST()
-        assert [] == f.get_letters()
+        assert [] == f.alphabet()
         s0 = f.get_initial_state()
         assert 0 == s0
         assert [s0] == f.get_states()
@@ -37,7 +37,11 @@ class MutableFSTTestCase(TestCase):
     def test_add_transition_with_empty_word(self):
         f = MutableFST()
         s0 = f.get_initial_state()
-        self.assertRaises(MutableFSTException, f.add_transition, s0, '', s0)
+        try:
+            f.add_transition(s0, '', s0)
+            raise
+        except MutableFSTException:
+            pass
 
     def test_add_transition(self):
         f = MutableFST()
@@ -50,14 +54,14 @@ class MutableFSTTestCase(TestCase):
         assert expected == f.to_dict()
         t = f.get_target(s0, 'a')
         assert s1 == t
-        assert ['a'] == f.get_letters()
+        assert ['a'] == f.alphabet()
         # s0 b s2
         f.add_transition(s0, 'b', s2)
         expected = {'initial': s0, 'finals': [], 'transitions': {s0: {'a': s1, 'b': s2}, s1: {}, s2: {}}}
         assert expected == f.to_dict()
         t = f.get_target(s0, 'b')
         assert s2 == t
-        assert ['a', 'b'] == f.get_letters()
+        assert ['a', 'b'] == f.alphabet()
         # s1 a s0
         f.add_transition(s1, 'a', s0)
         expected = {'initial': s0, 'finals': [], 'transitions': {s0: {'a': s1, 'b': s2}, s1: {'a': s0}, s2: {}}}
@@ -107,15 +111,15 @@ class MutableFSTTestCase(TestCase):
         expected = {'initial': s0, 'finals': [s1], 'transitions': {s0: {'a': s1}, s1: {'a': s0}}}
         assert expected == f.to_dict()
         # test accept
-        # # empty word is not accepted
+        # empty word is not accepted
         assert not f.accept('')
-        # # a is accepted
+        # a is accepted
         assert f.accept('a')
-        # # aa is not accepted
+        # aa is not accepted
         assert not f.accept('aa')
-        # # aaa is not accepted
+        # aaa is not accepted
         assert f.accept('aaa')
-        # # b is not accepted
+        # b is not accepted
         assert not f.accept('b')
 
     def test_det_search_ab_babb_bb(self):
@@ -139,22 +143,47 @@ class MutableFSTTestCase(TestCase):
         f.add_transition(s7, 'a', s4).add_transition(s7, 'b', s7)
         f.set_final_state(s2).set_final_state(s5).set_final_state(s6).set_final_state(s7)
         f.add_output(s2, 'ab').add_output(s5, 'ab').add_output(s6, 'bb').add_output(s6, 'babb').add_output(s7, 'bb')
-        expected = {'initial': s0, 'finals': [s2, s5, s6, s7], 'outputs': {s2: ['ab'], s5: ['ab'], s6: ['babb', 'bb'], s7: ['bb']}, 'transitions': {s0: {'a': s1, 'b': s3}, s1: {'a': s1, 'b': s2}, s2: {'a': s4, 'b': s7}, s3: {'a': s4, 'b': s7}, s4: {'a': s1, 'b': s5}, s5: {'a': s4, 'b': s6}, s6: {'a': s4, 'b': s7}, s7: {'a': s4, 'b': s7}}}
+        expected = {
+            'initial': s0,
+            'finals': [s2, s5, s6, s7],
+            'outputs': {
+                s2: ['ab'],
+                s5: ['ab'],
+                s6: ['babb', 'bb'],
+                s7: ['bb']
+            },
+            'transitions': {
+                s0: {'a': s1, 'b': s3},
+                s1: {'a': s1, 'b': s2},
+                s2: {'a': s4, 'b': s7},
+                s3: {'a': s4, 'b': s7},
+                s4: {'a': s1, 'b': s5},
+                s5: {'a': s4, 'b': s6},
+                s6: {'a': s4, 'b': s7},
+                s7: {'a': s4, 'b': s7}
+            }
+        }
         assert expected == f.to_dict()
-        self.assertEqual(f.get_letters(), ['a', 'b'])
+
+        expected = ['a', 'b']
+        assert expected == f.alphabet()
+
         # test det_search simulation on babba
         assert s3 == f.get_target(s0, 'b')
         assert s4 == f.get_target(s3, 'a')
         assert s5 == f.get_target(s4, 'b')
         assert s6 == f.get_target(s5, 'b')
         assert s4 == f.get_target(s6, 'a')
+
         # test det_search
         outputs = f.det_search('babba')
         # babba
         # 01234
-        self.assertEqual(outputs, [('ab', 1, 3), ('babb', 0, 4), ('bb', 2, 4)])
+        expected = [('ab', 1, 3), ('babb', 0, 4), ('bb', 2, 4)]
+        assert expected == outputs
         for o in outputs:
-            self.assertEqual('babba'[o[1]:  o [2]], o[0])
+            expected = o[0]
+            assert expected == 'babba'[o[1]: o [2]]
 
     def test_det_search_ab_aa(self):
         f = MutableFST()
@@ -172,16 +201,21 @@ class MutableFSTTestCase(TestCase):
         f = MutableFST()
         s0 = f.get_initial_state()
         assert set() == f.get_outputs(s0)
-        self.assertEqual(f.to_dict(), {'initial':  s0, 'finals':  [], 'transitions':  {s0:  {}}})
+        expected = {'initial': s0, 'finals': [], 'transitions': {s0: {}}}
+        assert expected == f.to_dict()
         f.add_output(s0, 1)
-        self.assertEqual(f.get_outputs(s0), {1 })
-        self.assertEqual(f.to_dict(), {'initial':  s0, 'finals':  [], 'outputs':  {s0:  [1]}, 'transitions':  {s0:  {}}})
+        assert {1} == f.get_outputs(s0)
+        expected = {'initial': s0, 'finals': [], 'outputs': {s0: [1]}, 'transitions': {s0: {}}}
+        assert expected == f.to_dict()
         f.add_output(s0, 2)
-        self.assertEqual(f.get_outputs(s0), {1, 2 })
-        self.assertEqual(f.to_dict(), {'initial':  s0, 'finals':  [], 'outputs':  {s0:  [1, 2]}, 'transitions':  {s0:  {}}})
+        assert {1, 2} == f.get_outputs(s0)
+
+        expected = {'initial': s0, 'finals': [], 'outputs': {s0: [1, 2]}, 'transitions': {s0: {}}}
+        assert expected == f.to_dict()
         f.add_output(s0, 1)
-        self.assertEqual(f.get_outputs(s0), {1, 2 })
-        self.assertEqual(f.to_dict(), {'initial':  s0, 'finals':  [], 'outputs':  {s0:  [1, 2]}, 'transitions':  {s0:  {}}})
+        assert {1, 2} == f.get_outputs(s0)
+        expected = {'initial': s0, 'finals': [], 'outputs': {s0: [1, 2]}, 'transitions': {s0: {}}}
+        assert expected == f.to_dict()
 
     def test_get_stats(self):
         # build some fsa
@@ -204,8 +238,24 @@ class MutableFSTTestCase(TestCase):
         f.add_transition(s7, 'a', s4).add_transition(s7, 'b', s7)
         f.set_final_state(s2).set_final_state(s5).set_final_state(s6).set_final_state(s7)
         f.add_output(s2, 'ab').add_output(s5, 'ab').add_output(s6, 'bb').add_output(s6, 'babb').add_output(s7, 'bb')
-        expected = {'initial': s0, 'finals': [s2, s5, s6, s7], 'outputs': {s2: ['ab'], s5: ['ab'], s6: ['babb', 'bb'], s7: ['bb']}, 'transitions': {s0: {'a': s1, 'b': s3}, s1: {'a': s1, 'b': s2}, s2: {'a': s4, 'b': s7}, s3: {'a': s4, 'b': s7}, s4: {'a': s1, 'b': s5}, s5: {'a': s4, 'b': s6}, s6: {'a': s4, 'b': s7}, s7: {'a': s4, 'b': s7}}}
+
+        expected = {
+            'initial': s0,
+            'finals': [s2, s5, s6, s7],
+            'outputs': {s2: ['ab'], s5: ['ab'], s6: ['babb', 'bb'], s7: ['bb']},
+            'transitions': {
+                s0: {'a': s1, 'b': s3},
+                s1: {'a': s1, 'b': s2},
+                s2: {'a': s4, 'b': s7},
+                s3: {'a': s4, 'b': s7},
+                s4: {'a': s1, 'b': s5},
+                s5: {'a': s4, 'b': s6},
+                s6: {'a': s4, 'b': s7},
+                s7: {'a': s4, 'b': s7}
+            }
+        }
         assert expected == f.to_dict()
+
         # test get_stats
         expected = {'num_states': 8, 'num_final_states': 4, 'num_transitions': 16}
         assert expected == f.get_stats()
@@ -267,7 +317,7 @@ nodesep = "0.25";
 class MutableFSTDTestCase(TestCase):
 
     def test_matching(self):
-        f = MutableFSTD()
+        f = MutableFSTWithDefaultSucessor()
         s0 = f.get_initial_state()
         s1 = f.add_state()
         s2 = f.add_state()

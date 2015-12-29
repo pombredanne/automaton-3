@@ -3,11 +3,11 @@
 
 from __future__ import absolute_import, print_function
 
-from automaton.fst import MutableFSTD
+from automaton.fst import MutableFSTWithDefaultSucessor
 from automaton.trie import build_trie
 
 
-def get_letters(words):
+def alphabet(words):
     """
     Return a set of unique letters given a sequence of words
     """
@@ -18,39 +18,44 @@ def get_letters(words):
     return alphabet
 
 
-def build_dma_complete(words, letters=None):
-    dma = build_trie(words)
-    initial = dma.get_initial_state()
+def build_dma_complete(words, alphabet=None):
+    """
+    DMA ? deterministic Mealy automata?
+    """
+    trie = build_trie(words)
+    initial = trie.get_initial_state()
     queue = []
-    if letters is None:
-        letters = get_letters(words)
-    for letter in letters:
-        target = dma.get_target(initial, letter)
+    if alphabet is None:
+        alphabet = alphabet(words)
+
+    for letter in alphabet:
+        target = trie.get_target(initial, letter)
         if target is None:
-            dma.add_transition(initial, letter, initial)
+            trie.add_transition(initial, letter, initial)
         else:
             queue.append((target, initial))
+
     while len(queue) != 0:
         p, r = queue.pop(0)
-        if dma.is_final_state(r):
-            dma.set_final_state(p)
-            dma.add_outputs(p, dma.get_outputs(r))
-        for letter in letters:
-            q = dma.get_target(p, letter)
-            s = dma.get_target(r, letter)
+        if trie.is_final_state(r):
+            trie.set_final_state(p)
+            trie.add_outputs(p, trie.get_outputs(r))
+        for letter in alphabet:
+            q = trie.get_target(p, letter)
+            s = trie.get_target(r, letter)
             if q is None:
-                dma.add_transition(p, letter, s)
+                trie.add_transition(p, letter, s)
             else:
                 queue.append((q, s))
-    return dma
+    return trie
 
 
 def build_dma_default(words, letters=None):
-    dma = build_trie(words, fst_factory=MutableFSTD)
+    dma = build_trie(words, fst_factory=MutableFSTWithDefaultSucessor)
     initial = dma.get_initial_state()
     queue = []
     if letters is None:
-        letters = get_letters(words)
+        letters = alphabet(words)
     for letter in letters:
         target = dma.get_target(initial, letter)
         if target is not None:

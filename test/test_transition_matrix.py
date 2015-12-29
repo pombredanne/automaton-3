@@ -15,16 +15,19 @@ class MutableTransitionMatrixTestCase(TestCase):
         assert 1 == tm.get_num_states()
         assert tm.has_state(0)
         assert not tm.has_state(1)
+
         # add state
         s1 = tm.add_state()
+
         # test
         assert 2 == tm.get_num_states()
         assert tm.has_state(0)
         assert tm.has_state(s1)
         assert tm.has_state(0)
         assert tm.has_state(1)
+
         # check states
-        self.assertEqual(tm.get_states(), [0, 1])
+        assert [0, 1] == tm.get_states()
 
     def test_add_transition(self):
         # initial state
@@ -66,18 +69,18 @@ class MutableTransitionMatrixTestCase(TestCase):
     def test_get_target_none(self):
         s0 = 0
         tm = MutableTransitionMatrix(s0)
-        assert None == tm.get_target(s0, 'a')
+        assert tm.get_target(s0, 'a') is None
 
 
 class MutableTransitionMatrixWithDefaultSuccessorTestCase(TestCase):
     def test_get_target(self):
         s0 = 0
         tm = MutableTransitionMatrixWithDefaultSuccessor(s0)
-        assert None == tm.get_target(s0, 'a')
+        assert tm.get_target(s0, 'a') is None
         assert s0 == tm.get_target_by_default(s0, 'a')
         s1 = tm.add_state()
         tm.add_transition(s0, 'a', s1)
         assert s1 == tm.get_target(s0, 'a')
         assert s1 == tm.get_target_by_default(s0, 'a')
-        assert None == tm.get_target(s0, 'b')
+        assert tm.get_target(s0, 'b') is None
         assert s0 == tm.get_target_by_default(s0, 'b')
