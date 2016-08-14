@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# @author <marty.patrick@gmail.com>
+# @author <lambda.coder@gmail.com>
 
 from .fst import MutableFST
 
