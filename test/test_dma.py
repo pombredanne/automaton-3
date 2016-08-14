@@ -11,14 +11,14 @@ class BuildDMATestCase(TestCase):
         words = ['a', 'ab']
         d = build_dma_default(words)
         # check automaton
-        self.assertEqual(d.to_dict(), {'initial': 0, 'finals': [1, 2], 'outputs': {1: ['a'], 2: ['ab']},
+        self.assertEqual(d.to_dict(), {'initial': 0, 'finals': {1, 2}, 'outputs': {1: ['a'], 2: ['ab']},
                                        'transitions': {0: {'a': 1, 'b': 0}, 1: {'a': 1, 'b': 2}, 2: {'a': 1, 'b': 0}}})
 
     def test_aa_ab(self):
         words = ['aa', 'ab']
         d = build_dma_default(words)
         # check automaton
-        self.assertEqual(d.to_dict(), {'initial': 0, 'finals': [2, 3], 'outputs': {2: ['aa'], 3: ['ab']},
+        self.assertEqual(d.to_dict(), {'initial': 0, 'finals': {2, 3}, 'outputs': {2: ['aa'], 3: ['ab']},
                                        'transitions': {0: {'a': 1, 'b': 0}, 1: {'a': 2, 'b': 3}, 2: {'a': 2, 'b': 3},
                                                        3: {'a': 1, 'b': 0}}})
         # check accepted words
@@ -38,7 +38,7 @@ class BuildDMATestCase(TestCase):
         words = ['aa', 'abaaa', 'abab']
         d = build_dma_default(words)
         # check automaton
-        self.assertEqual(d.to_dict(), {'initial': 0, 'finals': [2, 5, 6, 7],
+        self.assertEqual(d.to_dict(), {'initial': 0, 'finals': {2, 5, 6, 7},
                                        'outputs': {2: ['aa'], 5: ['aa'], 6: ['aa', 'abaaa'], 7: ['abab']},
                                        'transitions': {0: {'a': 1, 'b': 0}, 1: {'a': 2, 'b': 3}, 2: {'a': 2, 'b': 3},
                                                        3: {'a': 4, 'b': 0}, 4: {'a': 5, 'b': 7}, 5: {'a': 6, 'b': 3},
@@ -58,7 +58,7 @@ class BuildDMATestCase(TestCase):
         words = ['ab', 'babb', 'bb']
         d = build_dma_default(words)
         # check automaton
-        self.assertEqual(d.to_dict(), {'initial': 0, 'finals': [2, 5, 6, 7],
+        self.assertEqual(d.to_dict(), {'initial': 0, 'finals': {2, 5, 6, 7},
                                        'outputs': {2: ['ab'], 5: ['ab'], 6: ['babb', 'bb'], 7: ['bb']},
                                        'transitions': {0: {'a': 1, 'b': 3}, 1: {'a': 1, 'b': 2}, 2: {'a': 4, 'b': 7},
                                                        3: {'a': 4, 'b': 7}, 4: {'a': 1, 'b': 5}, 5: {'a': 4, 'b': 6},

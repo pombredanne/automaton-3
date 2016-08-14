@@ -10,14 +10,14 @@ class BuildTrieTestCase(TestCase):
     def test_emptyword(self):
         words = ['']
         t = build_trie(words)
-        self.assertEqual(t.to_dict(), {'initial': 0, 'finals': [], 'transitions': {0: {}}})
+        self.assertEqual(t.to_dict(), {'initial': 0, 'finals': set(), 'transitions': {0: {}}})
         self.assertFalse(t.accept(''))
 
     def test_a(self):
         words = ['a']
         t = build_trie(words)
         self.assertEqual(t.to_dict(),
-                         {'initial': 0, 'finals': [1], 'outputs': {1: ['a']}, 'transitions': {0: {'a': 1}, 1: {}}})
+                         {'initial': 0, 'finals':{1}, 'outputs': {1: ['a']}, 'transitions': {0: {'a': 1}, 1: {}}})
         self.assertFalse(t.accept(''))
         self.assertTrue(t.accept('a'))
         self.assertFalse(t.accept('aa'))
@@ -26,12 +26,12 @@ class BuildTrieTestCase(TestCase):
         words = ['a', '']
         t = build_trie(words)
         self.assertEqual(t.to_dict(),
-                         {'initial': 0, 'finals': [1], 'outputs': {1: ['a']}, 'transitions': {0: {'a': 1}, 1: {}}})
+                         {'initial': 0, 'finals': {1}, 'outputs': {1: ['a']}, 'transitions': {0: {'a': 1}, 1: {}}})
 
     def test_a_b(self):
         words = ['a', 'b']
         t = build_trie(words)
-        self.assertEqual(t.to_dict(), {'initial': 0, 'finals': [1, 2], 'outputs': {1: ['a'], 2: ['b']},
+        self.assertEqual(t.to_dict(), {'initial': 0, 'finals': {1, 2}, 'outputs': {1: ['a'], 2: ['b']},
                                        'transitions': {0: {'a': 1, 'b': 2}, 1: {}, 2: {}}})
         self.assertFalse(t.accept(''))
         self.assertTrue(t.accept('a'))
@@ -42,7 +42,7 @@ class BuildTrieTestCase(TestCase):
     def test_aa_ab(self):
         words = ['aa', 'ab']
         t = build_trie(words)
-        self.assertEqual(t.to_dict(), {'initial': 0, 'finals': [2, 3], 'outputs': {2: ['aa'], 3: ['ab']},
+        self.assertEqual(t.to_dict(), {'initial': 0, 'finals': {2, 3}, 'outputs': {2: ['aa'], 3: ['ab']},
                                        'transitions': {0: {'a': 1}, 1: {'a': 2, 'b': 3}, 2: {}, 3: {}}})
         self.assertFalse(t.accept(''))
         self.assertFalse(t.accept('a'))
@@ -53,7 +53,7 @@ class BuildTrieTestCase(TestCase):
     def test_a_aa_ab(self):
         words = ['a', 'aa', 'ab']
         t = build_trie(words)
-        self.assertEqual(t.to_dict(), {'initial': 0, 'finals': [1, 2, 3], 'outputs': {1: ['a'], 2: ['aa'], 3: ['ab']},
+        self.assertEqual(t.to_dict(), {'initial': 0, 'finals': {1, 2, 3}, 'outputs': {1: ['a'], 2: ['aa'], 3: ['ab']},
                                        'transitions': {0: {'a': 1}, 1: {'a': 2, 'b': 3}, 2: {}, 3: {}}})
         self.assertFalse(t.accept(''))
         self.assertTrue(t.accept('a'))
