@@ -1,3 +1,3 @@
 # automaton
 
-basic python implementation of FSA with trie and Aho Corasick algorithms
+basic python implementation of Finite State Transducers and Aho Corasick algorithm
