@@ -16,17 +16,18 @@ class MutableFSTTestCase(TestCase):
         self.assertEqual(s0, 0)
         self.assertEqual(f.get_states(), [s0])
         self.assertEqual(f.get_final_states(), [])
-        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'transitions': {s0: {}}})
+        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'outputs': {}, 'transitions': {s0: {}}})
 
     def test_add_state(self):
         f = MutableFST()
         s0 = f.get_initial_state()
         s1 = f.add_state()
         self.assertEqual(f.get_states(), [s0, s1])
-        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'transitions': {s0: {}, s1: {}}})
+        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'outputs': {}, 'transitions': {s0: {}, s1: {}}})
         s2 = f.add_state()
         self.assertEqual(f.get_states(), [s0, s1, s2])
-        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'transitions': {s0: {}, s2: {}, s1: {}}})
+        self.assertEqual(f.to_dict(),
+                         {'initial': s0, 'finals': set(), 'outputs': {}, 'transitions': {s0: {}, s2: {}, s1: {}}})
 
     def test_add_transition_with_empty_word(self):
         f = MutableFST()
@@ -40,27 +41,31 @@ class MutableFSTTestCase(TestCase):
         s2 = f.add_state()
         # s0 a s1
         f.add_transition(s0, 'a', s1)
-        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'transitions': {s0: {'a': s1}, s1: {}, s2: {}}})
+        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'outputs': {},
+                                       'transitions': {s0: {'a': s1}, s1: {}, s2: {}}})
         t = f.get_target(s0, 'a')
         self.assertEqual(t, s1)
         self.assertEqual(f.get_letters(), ['a'])
         # s0 b s2
         f.add_transition(s0, 'b', s2)
         self.assertEqual(f.to_dict(),
-                         {'initial': s0, 'finals': set(), 'transitions': {s0: {'a': s1, 'b': s2}, s1: {}, s2: {}}})
+                         {'initial': s0, 'finals': set(), 'outputs': {},
+                          'transitions': {s0: {'a': s1, 'b': s2}, s1: {}, s2: {}}})
         t = f.get_target(s0, 'b')
         self.assertEqual(t, s2)
         self.assertEqual(f.get_letters(), ['a', 'b'])
         # s1 a s0
         f.add_transition(s1, 'a', s0)
         self.assertEqual(f.to_dict(),
-                         {'initial': s0, 'finals': set(), 'transitions': {s0: {'a': s1, 'b': s2}, s1: {'a': s0}, s2: {}}})
+                         {'initial': s0, 'finals': set(), 'outputs': {},
+                          'transitions': {s0: {'a': s1, 'b': s2}, s1: {'a': s0}, s2: {}}})
         t = f.get_target(s1, 'a')
         self.assertEqual(t, s0)
         # s0 a s2
         f.add_transition(s0, 'a', s2)
         self.assertEqual(f.to_dict(),
-                         {'initial': s0, 'finals': set(), 'transitions': {s0: {'a': s2, 'b': s2}, s1: {'a': s0}, s2: {}}})
+                         {'initial': s0, 'finals': set(), 'outputs': {},
+                          'transitions': {s0: {'a': s2, 'b': s2}, s1: {'a': s0}, s2: {}}})
         t = f.get_target(s0, 'a')
         self.assertEqual(t, s2)
 
@@ -71,11 +76,12 @@ class MutableFSTTestCase(TestCase):
         self.assertEqual(f.get_final_states(), [])
         f.set_final_state(s1)
         self.assertEqual(f.get_final_states(), [s1])
-        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': {s1}, 'transitions': {s0: {}, s1: {}}})
+        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': {s1}, 'outputs': {}, 'transitions': {s0: {}, s1: {}}})
         s2 = f.add_state()
         f.set_final_state(s2)
         self.assertEqual(f.get_final_states(), [s1, s2])
-        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': {s1, s2}, 'transitions': {s0: {}, s1: {}, s2: {}}})
+        self.assertEqual(f.to_dict(),
+                         {'initial': s0, 'finals': {s1, s2}, 'outputs': {}, 'transitions': {s0: {}, s1: {}, s2: {}}})
 
     def test_is_final_state(self):
         f = MutableFST()
@@ -94,7 +100,8 @@ class MutableFSTTestCase(TestCase):
         s0 = f.get_initial_state()
         s1 = f.add_state()
         f.add_transition(s0, 'a', s1).add_transition(s1, 'a', s0).set_final_state(s1)
-        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': {s1}, 'transitions': {s0: {'a': s1}, s1: {'a': s0}}})
+        self.assertEqual(f.to_dict(),
+                         {'initial': s0, 'finals': {s1}, 'outputs': {}, 'transitions': {s0: {'a': s1}, s1: {'a': s0}}})
         # test accept
         ## empty word is not accepted
         self.assertFalse(f.accept(''))
@@ -165,16 +172,18 @@ class MutableFSTTestCase(TestCase):
         f = MutableFST()
         s0 = f.get_initial_state()
         self.assertEqual(f.get_outputs(s0), set())
-        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'transitions': {s0: {}}})
+        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'outputs': {}, 'transitions': {s0: {}}})
         f.add_output(s0, 1)
         self.assertEqual(f.get_outputs(s0), {1})
         self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'outputs': {s0: [1]}, 'transitions': {s0: {}}})
         f.add_output(s0, 2)
         self.assertEqual(f.get_outputs(s0), {1, 2})
-        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'outputs': {s0: [1, 2]}, 'transitions': {s0: {}}})
+        self.assertEqual(f.to_dict(),
+                         {'initial': s0, 'finals': set(), 'outputs': {s0: [1, 2]}, 'transitions': {s0: {}}})
         f.add_output(s0, 1)
         self.assertEqual(f.get_outputs(s0), {1, 2})
-        self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'outputs': {s0: [1, 2]}, 'transitions': {s0: {}}})
+        self.assertEqual(f.to_dict(),
+                         {'initial': s0, 'finals': set(), 'outputs': {s0: [1, 2]}, 'transitions': {s0: {}}})
 
     def test_get_stats(self):
         # build some fsa

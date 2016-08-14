@@ -10,7 +10,7 @@ class BuildTrieTestCase(TestCase):
     def test_emptyword(self):
         words = ['']
         t = build_trie(words)
-        self.assertEqual(t.to_dict(), {'initial': 0, 'finals': set(), 'transitions': {0: {}}})
+        self.assertEqual(t.to_dict(), {'initial': 0, 'finals': set(), 'outputs':{}, 'transitions': {0: {}}})
         self.assertFalse(t.accept(''))
 
     def test_a(self):
