@@ -7,15 +7,15 @@ from .transition_matrix import MutableTransitionMatrix
 from .transition_matrix import MutableTransitionMatrixWithDefaultSuccessor
 
 
-class FSTException(Exception):
+class AutomatonException(Exception):
     pass
 
 
-class FST:
-    def __init__(self, initialState, transitionMatrix, finalStates, outputs):
-        self.initialState_ = initialState
-        self.transitionMatrix_ = transitionMatrix
-        self.finals_ = finalStates
+class Automaton:
+    def __init__(self, initial, matrix, finals, outputs):
+        self.initialState_ = initial
+        self.transitionMatrix_ = matrix
+        self.finals_ = finals
         self.output_ = outputs
 
     def get_num_states(self):
@@ -32,7 +32,7 @@ class FST:
 
     def is_final_state(self, state):
         if not self.transitionMatrix_.has_state(state):
-            raise FSTException('Unknown state : %s' % str(state))
+            raise AutomatonException('Unknown state : %s' % str(state))
         return state in self.finals_
 
     def get_letters(self):
@@ -46,7 +46,7 @@ class FST:
 
     def get_outputs(self, state):
         if not self.transitionMatrix_.has_state(state):
-            raise FSTException('Unknown state : %s' % str(state))
+            raise AutomatonException('Unknown state : %s' % str(state))
         return self.output_.get(state, set())
 
     def get_stats(self):
@@ -85,7 +85,7 @@ class FST:
         return d
 
     def to_dot(self):
-        dot = ["""digraph FST {
+        dot = ["""digraph automaton {
 rankdir = LR;
 label = "";
 center = 1;
@@ -113,23 +113,23 @@ nodesep = "0.25";"""]
         return self.dump_(dotFileName, self.to_dot())
 
 
-class MutableFSTException(Exception):
+class MutableAutomatonException(AutomatonException):
     pass
 
 
-class AbstractMutableFST(FST):
-    def __init__(self, initialState, transitionMatrix):
-        FST.__init__(self, initialState, transitionMatrix, set(), defaultdict(set))
+class AbstractMutableAutomaton(Automaton):
+    def __init__(self, initial, matrix):
+        Automaton.__init__(self, initial, matrix, set(), defaultdict(set))
 
     def set_final_state(self, state):
         if not self.transitionMatrix_.has_state(state):
-            raise MutableFSTException('Unknown state : %s' % str(state))
+            raise MutableAutomatonException('Unknown state : %s' % str(state))
         self.finals_.add(state)
         return self
 
     def add_output(self, state, output):
         if not self.transitionMatrix_.has_state(state):
-            raise MutableFSTException('Unknown state : %s' % str(state))
+            raise MutableAutomatonException('Unknown state : %s' % str(state))
         self.output_[state].add(output)
         return self
 
@@ -143,24 +143,24 @@ class AbstractMutableFST(FST):
 
     def add_transition(self, source, letter, target):
         if len(letter) == 0:
-            raise MutableFSTException(
+            raise MutableAutomatonException(
                 'Epsilon transition not allowed : source state : %s , target state : %s ' % (source, target))
         if not self.transitionMatrix_.has_state(source):
-            raise MutableFSTException('Unknown source state : %s' % str(source))
+            raise MutableAutomatonException('Unknown source state : %s' % str(source))
         if not self.transitionMatrix_.has_state(target):
-            raise MutableFSTException('Unknown target state : %s' % str(target))
+            raise MutableAutomatonException('Unknown target state : %s' % str(target))
         self.transitionMatrix_.add_transition(source, letter, target)
         return self
 
 
-class MutableFST(AbstractMutableFST):
+class MutableAutomaton(AbstractMutableAutomaton):
     def __init__(self):
-        AbstractMutableFST.__init__(self, 0, MutableTransitionMatrix(0))
+        AbstractMutableAutomaton.__init__(self, 0, MutableTransitionMatrix(0))
 
 
-class MutableFSTD(AbstractMutableFST):  # D for default successor
+class MutableAutomatonWithDefaultSuccessor(AbstractMutableAutomaton):  # D for default successor
     def __init__(self):
-        AbstractMutableFST.__init__(self, 0, MutableTransitionMatrixWithDefaultSuccessor(0))
+        AbstractMutableAutomaton.__init__(self, 0, MutableTransitionMatrixWithDefaultSuccessor(0))
 
     def get_target_by_default(self, source, letter):
         return self.transitionMatrix_.get_target_by_default(source, letter)

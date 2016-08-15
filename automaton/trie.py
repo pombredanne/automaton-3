@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 # @author <lambda.coder@gmail.com>
 
-from .fst import MutableFST
+from .automaton import MutableAutomaton
 
 
-def build_trie( words , fst_factory=MutableFST ):
+def build_trie(words, fst_factory=MutableAutomaton):
     automaton = fst_factory()
     for word in words:
-        if len( word ) != 0:
-            currentState = automaton.get_initial_state()
+        if len(word) != 0:
+            state = automaton.get_initial_state()
             for letter in word:
-                targetState = automaton.get_target( currentState , letter )
-                if targetState is None:
-                    targetState = automaton.add_state()
-                    automaton.add_transition( currentState , letter , targetState )
-                currentState = targetState
-            automaton.set_final_state( currentState )
-            automaton.add_output( currentState , word )
+                target = automaton.get_target(state, letter)
+                if target is None:
+                    target = automaton.add_state()
+                    automaton.add_transition(state, letter, target)
+                state = target
+            automaton.set_final_state(state)
+            automaton.add_output(state, word)
     return automaton

@@ -5,15 +5,15 @@ import copy
 
 
 class MutableTransitionMatrix:
-    def __init__(self, initialState):
-        self.tm_ = {initialState: {}}
-        self.lastState_ = initialState
+    def __init__(self, initial):
+        self.tm_ = {initial: {}}
+        self.lastState_ = initial
 
     def add_state(self):
         self.lastState_ += 1
-        newState = self.lastState_
-        self.tm_[newState] = {}
-        return newState
+        new = self.lastState_
+        self.tm_[new] = {}
+        return new
 
     def add_transition(self, source, letter, target):
         self.tm_[source][letter] = target
@@ -48,9 +48,9 @@ class MutableTransitionMatrix:
 
 
 class MutableTransitionMatrixWithDefaultSuccessor(MutableTransitionMatrix):
-    def __init__(self, initialState):
-        MutableTransitionMatrix.__init__(self, initialState)
-        self.defaultSuccessor_ = initialState
+    def __init__(self, initial):
+        MutableTransitionMatrix.__init__(self, initial)
+        self.defaultSuccessor_ = initial
 
     def get_target_by_default(self, source, letter):
         target = self.get_target(source, letter)

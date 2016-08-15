@@ -2,7 +2,7 @@
 # @author <lambda.coder@gmail.com>
 
 
-from .fst import MutableFSTD
+from .automaton import MutableAutomatonWithDefaultSuccessor
 from .trie import build_trie
 
 
@@ -55,7 +55,7 @@ def build_dma_default(words, letters=None):
 
     see https://en.wikipedia.org/wiki/Aho–Corasick_algorithm
     """
-    automaton = build_trie(words, fst_factory=MutableFSTD)
+    automaton = build_trie(words, fst_factory=MutableAutomatonWithDefaultSuccessor)
     initial = automaton.get_initial_state()
     queue = []
     if letters is None:

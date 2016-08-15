@@ -3,14 +3,14 @@
 
 from unittest import TestCase
 
-from automaton.fst import MutableFSTException
-from automaton.fst import MutableFST
-from automaton.fst import MutableFSTD
+from automaton.automaton import MutableAutomatonException
+from automaton.automaton import MutableAutomaton
+from automaton.automaton import MutableAutomatonWithDefaultSuccessor
 
 
-class MutableFSTTestCase(TestCase):
+class MutableAutomatonTestCase(TestCase):
     def test_construction(self):
-        f = MutableFST()
+        f = MutableAutomaton()
         self.assertEqual(f.get_letters(), [])
         s0 = f.get_initial_state()
         self.assertEqual(s0, 0)
@@ -19,7 +19,7 @@ class MutableFSTTestCase(TestCase):
         self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'outputs': {}, 'transitions': {s0: {}}})
 
     def test_add_state(self):
-        f = MutableFST()
+        f = MutableAutomaton()
         s0 = f.get_initial_state()
         s1 = f.add_state()
         self.assertEqual(f.get_states(), [s0, s1])
@@ -30,12 +30,12 @@ class MutableFSTTestCase(TestCase):
                          {'initial': s0, 'finals': set(), 'outputs': {}, 'transitions': {s0: {}, s2: {}, s1: {}}})
 
     def test_add_transition_with_empty_word(self):
-        f = MutableFST()
+        f = MutableAutomaton()
         s0 = f.get_initial_state()
-        self.assertRaises(MutableFSTException, f.add_transition, s0, '', s0)
+        self.assertRaises(MutableAutomatonException, f.add_transition, s0, '', s0)
 
     def test_add_transition(self):
-        f = MutableFST()
+        f = MutableAutomaton()
         s0 = f.get_initial_state()
         s1 = f.add_state()
         s2 = f.add_state()
@@ -70,7 +70,7 @@ class MutableFSTTestCase(TestCase):
         self.assertEqual(t, s2)
 
     def test_final_state(self):
-        f = MutableFST()
+        f = MutableAutomaton()
         s0 = f.get_initial_state()
         s1 = f.add_state()
         self.assertEqual(f.get_final_states(), [])
@@ -84,7 +84,7 @@ class MutableFSTTestCase(TestCase):
                          {'initial': s0, 'finals': {s1, s2}, 'outputs': {}, 'transitions': {s0: {}, s1: {}, s2: {}}})
 
     def test_is_final_state(self):
-        f = MutableFST()
+        f = MutableAutomaton()
         s0 = f.get_initial_state()
         self.assertFalse(f.is_final_state(s0))
         s1 = f.add_state()
@@ -96,27 +96,27 @@ class MutableFSTTestCase(TestCase):
 
     def test_accept(self):
         # build some fsa
-        f = MutableFST()
+        f = MutableAutomaton()
         s0 = f.get_initial_state()
         s1 = f.add_state()
         f.add_transition(s0, 'a', s1).add_transition(s1, 'a', s0).set_final_state(s1)
         self.assertEqual(f.to_dict(),
                          {'initial': s0, 'finals': {s1}, 'outputs': {}, 'transitions': {s0: {'a': s1}, s1: {'a': s0}}})
         # test accept
-        ## empty word is not accepted
+        # empty word is not accepted
         self.assertFalse(f.accept(''))
-        ## a is accepted
+        # a is accepted
         self.assertTrue(f.accept('a'))
-        ## aa is not accepted
+        # aa is not accepted
         self.assertFalse(f.accept('aa'))
-        ## aaa is not accepted
+        # aaa is not accepted
         self.assertTrue(f.accept('aaa'))
-        ## b is not accepted
+        # b is not accepted
         self.assertFalse(f.accept('b'))
 
     def test_det_search_ab_babb_bb(self):
         # build some fsa
-        f = MutableFST()
+        f = MutableAutomaton()
         s0 = f.get_initial_state()
         s1 = f.add_state()
         s2 = f.add_state()
@@ -157,7 +157,7 @@ class MutableFSTTestCase(TestCase):
             self.assertEqual('babba'[o[1]:o[2]], o[0])
 
     def test_det_search_ab_aa(self):
-        f = MutableFST()
+        f = MutableAutomaton()
         s0 = f.get_initial_state()
         s1 = f.add_state()
         s2 = f.add_state()
@@ -169,7 +169,7 @@ class MutableFSTTestCase(TestCase):
         self.assertEqual(f.det_search('a ab aa'), [])
 
     def test_output_stuff(self):
-        f = MutableFST()
+        f = MutableAutomaton()
         s0 = f.get_initial_state()
         self.assertEqual(f.get_outputs(s0), set())
         self.assertEqual(f.to_dict(), {'initial': s0, 'finals': set(), 'outputs': {}, 'transitions': {s0: {}}})
@@ -187,7 +187,7 @@ class MutableFSTTestCase(TestCase):
 
     def test_get_stats(self):
         # build some fsa
-        f = MutableFST()
+        f = MutableAutomaton()
         s0 = f.get_initial_state()
         s1 = f.add_state()
         s2 = f.add_state()
@@ -216,10 +216,10 @@ class MutableFSTTestCase(TestCase):
         self.assertEqual(f.get_stats(), {'numStates': 8, 'numFinalStates': 4, 'numTransitions': 16})
 
     def test_to_dot(self):
-        f = MutableFST()
+        f = MutableAutomaton()
         # initial state
         s0 = f.get_initial_state()
-        expected_dot = """digraph FST {
+        expected_dot = """digraph automaton {
 rankdir = LR;
 label = "";
 center = 1;
@@ -230,7 +230,7 @@ nodesep = "0.25";
         self.assertEqual(f.to_dot().split('\n'), expected_dot.split('\n'))
         # add state
         s1 = f.add_state()
-        expected_dot = """digraph FST {
+        expected_dot = """digraph automaton {
 rankdir = LR;
 label = "";
 center = 1;
@@ -242,7 +242,7 @@ nodesep = "0.25";
         self.assertEqual(f.to_dot().split('\n'), expected_dot.split('\n'))
         # add transition
         f.add_transition(s0, 'a', s1)
-        expected_dot = """digraph FST {
+        expected_dot = """digraph automaton {
 rankdir = LR;
 label = "";
 center = 1;
@@ -256,7 +256,7 @@ nodesep = "0.25";
         # add final state
         f.set_final_state(s1)
         # check to_dot
-        expected_dot = """digraph FST {
+        expected_dot = """digraph automaton {
 rankdir = LR;
 label = "";
 center = 1;
@@ -269,9 +269,9 @@ nodesep = "0.25";
         self.assertEqual(f.to_dot().split('\n'), expected_dot.split('\n'))
 
 
-class MutableFSTDTestCase(TestCase):
+class MutableAutomatonDTestCase(TestCase):
     def test_matching(self):
-        f = MutableFSTD()
+        f = MutableAutomatonWithDefaultSuccessor()
         s0 = f.get_initial_state()
         s1 = f.add_state()
         s2 = f.add_state()
